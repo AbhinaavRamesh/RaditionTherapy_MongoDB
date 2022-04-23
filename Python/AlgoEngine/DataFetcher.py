@@ -130,11 +130,12 @@ def query_save_similarity(client,DBStudyID, TDSimilarity, OVHDisimilarity, STSDi
   collection.insert_many(data[table])
   print('Collection ',table,' Updated')
 
-        query_roi_id_from_rtroi = "SELECT id from rt_rois where roi_id_id= %s and fk_study_id_id = %s"
-        self.cursor.execute(query_roi_id_from_rtroi, [dicom_roi_id, dicom_roi_id])
-def query_roi_id_from_rtroi(client,dicom_roi_id,dicom_roi_id):
+
+def query_roi_id_from_rtroi(client,dicom_roi_id, study_id ):
     db = client['dicomRt']
     collection = db.roi
+    return list(collection.find({"$and":[{"ReferenceROInum": dicom_roi_id},{"Study_ID":study_id}]}))[0]
+
 
 
 class DataFetcher():
