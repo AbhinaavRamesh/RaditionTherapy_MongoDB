@@ -1,0 +1,592 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Radiation Therapy Decision Support Documentation &#8212; Radiation Therapy Decision Support  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="radiation-therapy-decision-support-documentation">
+<h1>Radiation Therapy Decision Support Documentation<a class="headerlink" href="#radiation-therapy-decision-support-documentation" title="Permalink to this headline">¶</a></h1>
+<p>This page contains API documentation from all functions in RadiationTherapyDecisionSupport
+project.</p>
+</div>
+<div class="section" id="general-functions">
+<h1>General Functions<a class="headerlink" href="#general-functions" title="Permalink to this headline">¶</a></h1>
+<p>Designed to be reused between categories of function (OVH, STS, Similarity).</p>
+<div class="toctree-wrapper compound">
+</div>
+<span class="target" id="module-utils"></span><dl class="function">
+<dt id="utils.getVolume">
+<code class="descclassname">utils.</code><code class="descname">getVolume</code><span class="sig-paren">(</span><em>roi_block</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.getVolume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the volume of an ROI as the number of voxels it contains</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>roi_block</strong> : 3d Ndarray</p>
+<blockquote>
+<div><p>A 3D array of dimensions h x w  x num_cts. Contains 1s on and inside contour perimeter and 0s elsewhere.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>volume</strong> : int</p>
+<blockquote class="last">
+<div><p>Number of voxels in ROI</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.getContours">
+<code class="descclassname">utils.</code><code class="descname">getContours</code><span class="sig-paren">(</span><em>block_shape</em>, <em>contour_data</em>, <em>image_orientation</em>, <em>image_position</em>, <em>pixel_spacing</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.getContours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the contour (perimeter) of a specified ROI, and
+the ROI mask of a specified ROI.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>block_shape</strong> : tuple</p>
+<blockquote>
+<div><p>The shape of the CT block, in the format <cite>(height,
+width)</cite></p>
+</div></blockquote>
+<p><strong>contour_data</strong> : dict of 2D NdArray</p>
+<blockquote>
+<div><p>Contains contour data (coordinates of contour perimeter)
+as specified by the clinician who entered them. Key
+for contour_data should be ReferencedSOPInstanceUID
+from the structureset dicom file.</p>
+</div></blockquote>
+<p><strong>image_orientation</strong> : dict</p>
+<blockquote>
+<div><p>Contains image orientation data from dicom field
+ImageOrientationPatient for each ROI plane (subset
+of CT images). Key is also ReferencedSOPInstanceUID.</p>
+</div></blockquote>
+<p><strong>image_position</strong> : dict</p>
+<blockquote>
+<div><p>Contains image position data from dicom field
+ImagePositionPatient for each ROI plane (subset
+of CT images). Key is also ReferencedSOPInstanceUID.</p>
+</div></blockquote>
+<p><strong>pixel_spacing</strong> : dict</p>
+<blockquote>
+<div><p>Contains pixel spacing data from dicom field
+PixelSpacing for each ROI plane (subset
+of CT images). Key is also ReferencedSOPInstanceUID.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>contour_block</strong> : 3D NdArray</p>
+<blockquote>
+<div><p>A 3D array of dimensions specified by block_shape. 
+Contains 1s at coordinates of contour and 0s elsewhere.</p>
+</div></blockquote>
+<p><strong>roi_block</strong> : 3D NdArray</p>
+<blockquote class="last">
+<div><p>A 3D array of dimensions specified by block_shape.
+Contains 1s on and inside contour perimeter and 0s
+elsewhere.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.getIsodose">
+<code class="descclassname">utils.</code><code class="descname">getIsodose</code><span class="sig-paren">(</span><em>dose_grid</em>, <em>DoseGridScaling</em>, <em>x0</em>, <em>y0</em>, <em>x_spacing</em>, <em>y_spacing</em>, <em>sopUID</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.getIsodose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns 2D isodose wash (contours of each dose)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>dose_grid: 3D NdArray</strong></p>
+<blockquote>
+<div><p>Dose values in the format (number_of_ct_scans, height, width)</p>
+</div></blockquote>
+<p><strong>DoseGridScaling: float</strong></p>
+<blockquote>
+<div><p>Scaling factor that when multiplied by dose bin widths (from dose_grid), yields dose bin widths in correct units</p>
+</div></blockquote>
+<p><strong>x0</strong> : float</p>
+<blockquote>
+<div><p>Initial position (x) of isodose with respect to the CT scan. Used for aligning Isodose onto the CT scan</p>
+</div></blockquote>
+<p><strong>y0</strong> : float</p>
+<blockquote>
+<div><p>Initial position (y) of isodose with respect to the CT scan. Used for aligning Isodose onto the CT scan</p>
+</div></blockquote>
+<p><strong>x_spacing</strong> : float</p>
+<blockquote>
+<div><p>Pixel spacing of CT scan in the x direction</p>
+</div></blockquote>
+<p><strong>y_spacing</strong> : float</p>
+<blockquote>
+<div><p>Pixel spacing of CT scan in the y direction</p>
+</div></blockquote>
+<p><strong>sopUID</strong> : Dict of strings</p>
+<blockquote>
+<div><p>the Study IDs for each CT scan, in order. Used for indexing each slice of the dose grid by corresponding CT
+scan.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">isodose: Dict of Dict of 1D NdArray</p>
+<blockquote class="last">
+<div><p>Array with outer dict key as SOPID and inner dict key as isodose value (percentage). Contains the rows
+and columns in the specified CT scan where the dose is greater than the percentage specified by the inner
+key.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.getMeanTargetDose">
+<code class="descclassname">utils.</code><code class="descname">getMeanTargetDose</code><span class="sig-paren">(</span><em>ptv_roi_block</em>, <em>block_shape</em>, <em>dose_grid</em>, <em>DoseGridScaling</em>, <em>x0</em>, <em>y0</em>, <em>x_spacing</em>, <em>y_spacing</em>, <em>sopUID</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.getMeanTargetDose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns mean dose, as an absolute value scaled by <cite>DoseGridScaling</cite>, from inside the PTV.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>ptv_roi_block</strong> : 3D NdArray</p>
+<blockquote>
+<div><p>A 3D array of dimensions specified by block_shape.
+Contains 1s on and inside PTV contour perimeter and 0s
+elsewhere.</p>
+</div></blockquote>
+<p><strong>block_shape</strong> : tuple</p>
+<blockquote>
+<div><p>The shape of the CT block, in the format <cite>(height,
+width, number_of_ct_scans)</cite></p>
+</div></blockquote>
+<p><strong>DoseGridScaling: float</strong></p>
+<blockquote>
+<div><p>Scaling factor that when multiplied by dose bin widths (from dose_grid), yields dose bin widths in correct units</p>
+</div></blockquote>
+<p><strong>x0</strong> : float</p>
+<blockquote>
+<div><p>Initial position (x) of isodose with respect to the CT scan. Used for aligning Isodose onto the CT scan</p>
+</div></blockquote>
+<p><strong>y0</strong> : float</p>
+<blockquote>
+<div><p>Initial position (y) of isodose with respect to the CT scan. Used for aligning Isodose onto the CT scan</p>
+</div></blockquote>
+<p><strong>x_spacing</strong> : float</p>
+<blockquote>
+<div><p>Pixel spacing of CT scan in the x direction</p>
+</div></blockquote>
+<p><strong>y_spacing</strong> : float</p>
+<blockquote>
+<div><p>Pixel spacing of CT scan in the y direction</p>
+</div></blockquote>
+<p><strong>sopUID</strong> : Dict of strings</p>
+<blockquote>
+<div><p>the Study IDs for each CT scan, in order. Used for indexing each slice of the dose grid by corresponding CT
+scan.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>dose_mean</strong> : float</p>
+<blockquote class="last">
+<div><p>Scalar mean dose of doses inside PTV contour</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.getImageBlock">
+<code class="descclassname">utils.</code><code class="descname">getImageBlock</code><span class="sig-paren">(</span><em>patientID</em>, <em>DATA_PATH</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.getImageBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Numpy array of CT_IMAGE_BLOCK [height x width x num_ct_scans].
+Array is ordered such that first image is head, last is feet.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>patientID</strong> : string</p>
+<blockquote>
+<div><p>The unique identifier for patient</p>
+</div></blockquote>
+<p><strong>DATA_PATH</strong> : string</p>
+<blockquote>
+<div><p>The abosolute local path location where dicom CT scan files are stored.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>imageBlock</strong> : 3d array</p>
+<blockquote>
+<div><p>The shape is height * width * num_ct_scans</p>
+</div></blockquote>
+<p><strong>SOPID</strong> : Ordered Dict</p>
+<blockquote class="last">
+<div><p>The list of UID, in the order as the slice</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.convertROIToCTSpace">
+<code class="descclassname">utils.</code><code class="descname">convertROIToCTSpace</code><span class="sig-paren">(</span><em>roi_block</em>, <em>image_position</em>, <em>sopIDs</em><span class="sig-paren">)</span><a class="headerlink" href="#utils.convertROIToCTSpace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts an ROI block of size <cite>[h x w x num_rois]</cite> to 
+a CT block of size <cite>[h x w x num_cts]</cite></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>roi_block</strong> : 3D NdArray</p>
+<blockquote>
+<div><p>A 3D array of dimensions specified by block_shape.
+Contains 1s on and inside contour perimeter and 0s
+elsewhere.</p>
+</div></blockquote>
+<p><strong>image_position</strong> : dict</p>
+<blockquote>
+<div><p>Contains image position data from dicom field
+ImagePositionPatient for each ROI plane (subset
+of CT images). Key is also ReferencedSOPInstanceUID.</p>
+</div></blockquote>
+<p><strong>SOPIDs</strong> : Ordered Dict</p>
+<blockquote>
+<div><p>Ordered by z variable, key is Z var, value is SOP ID.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>ct_roi_block</strong> : 3D NdArray</p>
+<blockquote class="last">
+<div><p>the <cite>roi_block</cite> with zeros intersped where there is no
+ROI contour.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils._convertIsodoseCoordinates">
+<code class="descclassname">utils.</code><code class="descname">_convertIsodoseCoordinates</code><span class="sig-paren">(</span><em>temp_array</em>, <em>x0</em>, <em>y0</em>, <em>x_spacing</em>, <em>y_spacing</em><span class="sig-paren">)</span><a class="headerlink" href="#utils._convertIsodoseCoordinates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the rows and columns of each point of a given isodose value</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>temp_mask</strong> : 2d NdArray</p>
+<blockquote>
+<div><p>Contains dose data in dose array space. Is to be converted to CT array space.</p>
+</div></blockquote>
+<p><strong>x0</strong> : float</p>
+<blockquote>
+<div><p>Initial position (x) of isodose with respect to the CT scan. Used for aligning Isodose onto the CT scan</p>
+</div></blockquote>
+<p><strong>y0</strong> : float</p>
+<blockquote>
+<div><p>Initial position (y) of isodose with respect to the CT scan. Used for aligning Isodose onto the CT scan</p>
+</div></blockquote>
+<p><strong>x_spacing</strong> : float</p>
+<blockquote>
+<div><p>Pixel spacing of CT scan in the x direction</p>
+</div></blockquote>
+<p><strong>y_spacing</strong> : float</p>
+<blockquote>
+<div><p>Pixel spacing of CT scan in the y direction</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>row</strong> : 1D NdArray</p>
+<blockquote>
+<div><p>Rows of each dose contour as corrected to CT array space</p>
+</div></blockquote>
+<p><strong>col</strong> : 1D NdArray</p>
+<blockquote class="last">
+<div><p>Columns of each dose contour as corrected to CT array space</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="ovh-functions">
+<h1>OVH Functions<a class="headerlink" href="#ovh-functions" title="Permalink to this headline">¶</a></h1>
+<p>Functions specific to computing the overlap volume histogram (OVH) for a given
+Primary target volume (PTV) and a single organ at risk (OAR)</p>
+</div>
+<div class="section" id="sts-functions">
+<h1>STS Functions<a class="headerlink" href="#sts-functions" title="Permalink to this headline">¶</a></h1>
+<p>Functions specific to computing the Spatial Transform Signature (STS) for a given
+Primary target volume (PTV) and a single organ at risk (OAR)</p>
+<span class="target" id="module-sts"></span><dl class="function">
+<dt id="sts.getSTSHistogram">
+<code class="descclassname">sts.</code><code class="descname">getSTSHistogram</code><span class="sig-paren">(</span><em>ptv_roi_block</em>, <em>oar_roi_block</em>, <em>n_bins</em><span class="sig-paren">)</span><a class="headerlink" href="#sts.getSTSHistogram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the vectors for an STS histogram.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>ptv_roi_block</strong> : 3d Ndarray</p>
+<blockquote>
+<div><p>A 3D array of dimensions h x w  x num_cts. 
+Contains 1s on and inside PTV contour perimeter and 0s elsewhere.</p>
+</div></blockquote>
+<p><strong>oar_roi_block</strong> : 3d Ndarray</p>
+<blockquote>
+<div><p>A 3D array of dimensions h x w  x num_cts. 
+Contains 1s on and inside OAR contour perimeter and 0s elsewhere.</p>
+</div></blockquote>
+<p><strong>n_bins</strong> : int</p>
+<blockquote>
+<div><p>Number of bins to use in histogram.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>elevation_bins</strong> : 1D NdArray</p>
+<blockquote>
+<div><p>Intervals for elevation which each value falls into. Length is <cite>n_bins</cite>.</p>
+</div></blockquote>
+<p><strong>distance_bins</strong> : 1D NdArray</p>
+<blockquote>
+<div><p>Intervals for distance which each value falls into. Length is <cite>n_bins</cite>.</p>
+</div></blockquote>
+<p><strong>azimuth_bins</strong> : 1D NdArray</p>
+<blockquote>
+<div><p>Intervals for azimuth which each value falls into. Length is <cite>n_bins</cite>.</p>
+</div></blockquote>
+<p><strong>amounts</strong> : 2D NdArray</p>
+<blockquote class="last">
+<div><p>Dimensions are [num_combinations, 4]. Contains
+percentage of points in each interval, normalized but not cumulative.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sts.getDistance">
+<code class="descclassname">sts.</code><code class="descname">getDistance</code><span class="sig-paren">(</span><em>ptv_vox</em>, <em>oar_cen</em><span class="sig-paren">)</span><a class="headerlink" href="#sts.getDistance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the radial distance between two voxels</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>ptv_vox</strong> : tuple</p>
+<blockquote>
+<div><p>Index location of PTV voxel</p>
+</div></blockquote>
+<p><strong>oar_cen</strong> : tuple</p>
+<blockquote>
+<div><p>Index location of OAR centroid</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>distance</strong> : int</p>
+<blockquote class="last">
+<div><p>Radial distance between voxels</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sts.getElevation">
+<code class="descclassname">sts.</code><code class="descname">getElevation</code><span class="sig-paren">(</span><em>ptv_vox</em>, <em>oar_cen</em><span class="sig-paren">)</span><a class="headerlink" href="#sts.getElevation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the elevation between two voxels</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>ptv_vox</strong> : tuple</p>
+<blockquote>
+<div><p>Index location of PTV voxel</p>
+</div></blockquote>
+<p><strong>oar_cen</strong> : tuple</p>
+<blockquote>
+<div><p>Index location of OAR centroid</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>elevation</strong> : int</p>
+<blockquote class="last">
+<div><p>Elevation between voxels</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sts.getAzimuth">
+<code class="descclassname">sts.</code><code class="descname">getAzimuth</code><span class="sig-paren">(</span><em>ptv_vox</em>, <em>oar_cen</em><span class="sig-paren">)</span><a class="headerlink" href="#sts.getAzimuth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the azimuth between two voxels</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>ptv_vox</strong> : tuple</p>
+<blockquote>
+<div><p>Index location of PTV voxel</p>
+</div></blockquote>
+<p><strong>oar_cen</strong> : tuple</p>
+<blockquote>
+<div><p>Index location of OAR centroid</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>azimuth</strong> : double</p>
+<blockquote class="last">
+<div><p>Azimuth angle between voxels (in radians)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="sts.getCentroid">
+<code class="descclassname">sts.</code><code class="descname">getCentroid</code><span class="sig-paren">(</span><em>roi_block</em><span class="sig-paren">)</span><a class="headerlink" href="#sts.getCentroid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the centroid (center) of an ROI_block</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>roi_block</strong> : 3D NdArray</p>
+<blockquote>
+<div><p>An array of dims [h x w x num_cts] where all 1s indicate
+points inside the ROI.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>centroid</strong> : 1D NdArray</p>
+<blockquote class="last">
+<div><p>An array of length 3, where the elements are [x, y, z]
+coordinate of the centroid respectively</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="similarity-functions">
+<h1>Similarity Functions<a class="headerlink" href="#similarity-functions" title="Permalink to this headline">¶</a></h1>
+<p>Functions designed to compute the earth mover’s distance between OVH histograms and STS Histograms,
+and the absolute difference between target doses.</p>
+</div>
+<div class="section" id="datafetcher-class">
+<h1>DataFetcher Class<a class="headerlink" href="#datafetcher-class" title="Permalink to this headline">¶</a></h1>
+<p>Class designed to facilitate easy connection to the remote MySQL database.</p>
+<span class="target" id="module-DataFetcher"></span></div>
+<div class="section" id="init-algomanager-class">
+<h1>__init__ AlgoManager Class<a class="headerlink" href="#init-algomanager-class" title="Permalink to this headline">¶</a></h1>
+<p>Class designed to wrap the OVH, STS and similarity functions.</p>
+<p>..automodule:: __init__</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">Radiation Therapy Decision Support</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Image Processing Informatics Lab, USC.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
