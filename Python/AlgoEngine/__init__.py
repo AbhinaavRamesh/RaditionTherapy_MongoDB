@@ -23,9 +23,9 @@ class AlgoManager():
     attribute
     self.StudyIDs
     '''
-    def __init__(self, studyID, use_ssh=True):
+    def __init__(self, studyID, connect_mongo=True):
         #create a datafetcher instance to fetch the data from the database
-        self.data_fetcher = DataFetcher(use_ssh)
+        self.data_fetcher = DataFetcher(connect_mongo)
 
         self.n_bins = 10
 

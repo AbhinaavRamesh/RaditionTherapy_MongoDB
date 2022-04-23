@@ -1,5 +1,4 @@
-import MySQLdb
-from sshtunnel import SSHTunnelForwarder
+from pymongo import MongoClient
 import numpy as np
 from collections import defaultdict, OrderedDict
 
@@ -30,32 +29,26 @@ query_for_contour = 'SELECT * from rt_contour WHERE fk_roi_id_id = %s AND fk_str
 query_for_image_plane_info = 'SELECT * from ct_images WHERE SOPInstanceUID = %s'
 class DataFetcher():
 
-    def __init__(self, use_ssh=True):
+    def __init__(self,connect_mongo=True):
 
         """
-        Initializes datafetcher by building SSH connection, and saving the connection cursor.
+        Initializes datafetcher by building PYMONGO connection, and saving the connection client.
         Then, funnctions to load data are prepared using the SSH tunnel.
 
         Parameters
         ----------
-        database_username : str
-            Username for mysql database
-        database_password : str
-            password for mysql database
-        use_ssh : bool
-            whether to use remote db or local db (false)
+        serverURL : str
+            Mongo Server URL
+        userName : str
+            user name for Mongo Database
+        password : str
+            Password for corresponding user
         """
-        port = 3306
-        if use_ssh:
-            self.server = SSHTunnelForwarder((ssh_hostname, ssh_port), ssh_username=ssh_username,
-                                        ssh_password=ssh_password,
-                                            remote_bind_address=('127.0.0.1', 3306))
-            self.server.start()
-            port = self.server.local_bind_port
-
-        self.connection = MySQLdb.connect(read_default_file='/etc/mysql/my.cnf', autocommit=True)
-
-        self.cursor = self.connection.cursor(MySQLdb.cursors.DictCursor)
+        self.userName="bme-528"
+        self.password="project4"
+        self.serverURL="mongodb+srv://"+self.userName+":"+self.password+"@cluster0.x69n5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+        if connect_mongo:
+            self.client=MongoClient(self.serverURL)
 
         print("Finished Setting up database access")
 
