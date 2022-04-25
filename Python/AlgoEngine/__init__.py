@@ -1,5 +1,3 @@
-
-import MySQLdb
 import numpy as np
 import collections
 from collections import defaultdict
@@ -17,22 +15,21 @@ except ImportError: # Used for running notebooks in `similarity` folder
     from .DataFetcher import DataFetcher
     from .similarity import getOVHEmd,getSTSEmd
     # from AlgoEngine.similarity_calculation import cal_dissimilarity_ovh,cal_dissimilarity_sts,cal_dissimilarity_td,cal_similarity
-
 class AlgoManager():
     '''
     attribute
     self.StudyIDs
     '''
-    def __init__(self, studyID, connect_mongo=True):
+    def __init__(self, patient_id, connect_mongo=True,local=True):
         #create a datafetcher instance to fetch the data from the database
-        self.data_fetcher = DataFetcher(connect_mongo)
+        self.data_fetcher = DataFetcher()
 
         self.n_bins = 10
 
-        self.queryStudyID = studyID
+        self.patient_id = patient_id
 
     def get_contours_by_id(self, roi_index):
-        return self.data_fetcher.get_contours_by_id(self.queryStudyID, roi_index)
+        return self.data_fetcher.get_contours_by_id(self.patient_id, roi_index)
 
     def feature_extraction(self):
         '''
@@ -41,42 +38,54 @@ class AlgoManager():
         :return ovh: a histogram of ovh feature
         :return sts: a histogram of sts feature
         :return td: target dose
+
+
         '''
         #Both PTV and OAR are dictionary
-        PTV,OAR = self.data_fetcher.get_contours(self.queryStudyID)
+        PTV,OAR = self.data_fetcher.get_contours(self.patient_id)
         
         # Check that PTV has been found
-        assert len(PTV.keys()) > 0 , "PTV NOT FOUND"
+        if len(PTV.keys()) > 0:
+            print("PTV is found")
+        else:
+            print("No PTV ROI for given Case")
+            exit(1)
+        print("Computing Spacing in Image Data")
 
-        row_spacing, column_spacing, slice_thickness = self.data_fetcher.get_spacing(self.queryStudyID)
-        pixel_spacing = self.data_fetcher.get_pixel_spacing(self.queryStudyID)
+        row_spacing, column_spacing, slice_thickness = self.data_fetcher.get_spacing(self.patient_id)
+        pixel_spacing = self.data_fetcher.get_pixel_spacing(self.patient_id)
+        # print(PTV)
 
+        print("Computing OVH, STS")
         for ptv_name,ptv_tuple in PTV.items():
             for oar_name,oar_tuple in OAR.items():
-                #in the tuple, the first one is contour block and the second one is roi block
-                print("process the pair")
-                oar_contour_block = oar_tuple[0][0]
-                oar_roi_block = oar_tuple[0][1]
+                try:
+                    #in the tuple, the first one is contour block and the second one is roi block
+                    print("process the pair")
+                    oar_contour_block = oar_tuple[0][0]
+                    oar_roi_block = oar_tuple[0][1]
 
-                ptv_contour_block = ptv_tuple[0][0]
-                ptv_roi_block = ptv_tuple[0][1]
-                bin_vals, bin_amts = getOVH(oar_roi_block, ptv_contour_block, ptv_roi_block, pixel_spacing,
-                            row_spacing, column_spacing, slice_thickness, self.n_bins)
+                    ptv_contour_block = ptv_tuple[0][0]
+                    ptv_roi_block = ptv_tuple[0][1]
+                    bin_vals, bin_amts = getOVH(oar_roi_block, ptv_contour_block, ptv_roi_block, pixel_spacing,
+                                row_spacing, column_spacing, slice_thickness, self.n_bins)
 
-                ovh_hist = (bin_vals, bin_amts)
+                    ovh_hist = (bin_vals, bin_amts)
 
-                # print("Get ovh {}".format(ovh_hist))
-                print("OVH Done")
-                elevation_bins, distance_bins, azimuth_bins, amounts = getSTSHistogram(ptv_roi_block, oar_roi_block, self.n_bins)
-                sts_hist = (elevation_bins, distance_bins, azimuth_bins, amounts)
+                    # print("Get ovh {}".format(ovh_hist))
+                    print("OVH Done")
+                    elevation_bins, distance_bins, azimuth_bins, amounts = getSTSHistogram(ptv_roi_block, oar_roi_block, self.n_bins)
+                    sts_hist = (elevation_bins, distance_bins, azimuth_bins, amounts)
 
-                print("STS Done")
-                # print("Get Sts {}".format(sts_hist))
+                    print("STS Done")
+                    # print("Get Sts {}".format(sts_hist))
 
-                self.data_fetcher.save_ovh(ptv_name,oar_name,ovh_hist,self.queryStudyID)
-                self.data_fetcher.save_sts(ptv_name,oar_name,sts_hist,self.queryStudyID)
+                    self.data_fetcher.save_ovh(ptv_name,oar_name,ovh_hist,self.patient_id)
+                    self.data_fetcher.save_sts(ptv_name,oar_name,sts_hist,self.patient_id)
 
-                print("Saved OVH and STS")
+                    print("Saved OVH and STS")
+                except:
+                    print("Skipping current ROI and Contour Block, Error computing OVH,STS")
         pass
 
     def generate_pairs(self,queryStudy,dbStudy):
@@ -149,10 +158,10 @@ class AlgoManager():
         calculate similarity between study pair
         :return: dict with dissimiarity and similarity
         '''
-        queryOVH = self.data_fetcher.get_ovh(self.queryStudyID)
-        querySTS = self.data_fetcher.get_sts(self.queryStudyID)
+        queryOVH = self.data_fetcher.get_ovh(self.patient_id)
+        querySTS = self.data_fetcher.get_sts(self.patient_id)
 
-        self.DBStudy_list = self.data_fetcher.get_dbstudy_list(self.queryStudyID)
+        self.DBStudy_list = self.data_fetcher.get_dbstudy_list(self.patient_id)
 
         for studyID in self.DBStudy_list:
             historical_id = studyID["id"]
@@ -179,7 +188,7 @@ class AlgoManager():
 
                 self.data_fetcher.save_similarity(str(historical_id), query_target_dose - 
                         historical_target_dose, str(ovh_dis), str(sts_dis), key.split(" ")[0], 
-                    key.split(" ")[-1], str(historical_id), self.queryStudyID)
+                    key.split(" ")[-1], str(historical_id), self.patient_id)
 
 
     #The entrance of the program
@@ -191,7 +200,7 @@ class AlgoManager():
         #Save the result to database
 
         #Store the StudyID of all DB studies for future similarity calculation
-        self.DBStudy_list = self.data_fetcher.get_dbstudy_list(self.queryStudyID)
+        self.DBStudy_list = self.data_fetcher.get_dbstudy_list(self.patient_id)
 
         #calculate ovh,sts and save it to database
         self.feature_extraction()

@@ -6,7 +6,6 @@ sys.path.append('..')
 import glob
 from collections import Counter,OrderedDict, defaultdict
 import cv2
-import dicom
 
 
 def dicom_to_string(df):

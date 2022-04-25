@@ -1,5 +1,4 @@
 import numpy as np
-import dicom
 import sys
 sys.path.append('..')
 import cv2

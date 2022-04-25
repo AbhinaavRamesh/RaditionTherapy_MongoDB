@@ -1,81 +1,69 @@
 from pymongo import MongoClient
+import pandas as pd
+from tqdm import tqdm
 import numpy as np
 from collections import defaultdict, OrderedDict
-
-# Imports for STS / OVH / etc
+try:
+    from utils import *
+except ImportError: # Used for running notebooks in `similarity` folder
+    import sys
+    sys.path.append('..')
+    from .utils import *
+    
 import sys
 sys.path.append('..')
-try:
-    from .utils import *
-    from .settings import * 
-    from .sts import getSTSHistogram
-    from .ovh import getOVH
-    from .similarity import getSTSEmd, getOVHEmd, getTDDistance
-except:
-    from AlgoEngine.utils import *
-    from AlgoEngine.settings import * 
-    from AlgoEngine.sts import getSTSHistogram
-    from AlgoEngine.ovh import getOVH
-    from AlgoEngine.similarity import getSTSEmd, getOVHEmd, getTDDistance
 import re
 
 #in order to use this AlgoEngine separately, we build this datafetcher by using MySQLdb instead of Django ORM
 #it can also be implemented with Django ORM
+def get_study_id(client,patient_name):
+  db = client['dicomRt']
+  collection=db.studies
+  return list(collection.find({"PatientName": patient_name}))[0]['StudyInstanceUID']
 def query_for_roi_list(client,study_id):
   db = client['dicomRt']
   collection=db.roi
   return list(collection.find({"Study_ID": study_id}))
-
 def query_for_roi_name(client,refroinos):
   db = client['dicomRt']
   collection = db.roi
-  return list(collection.find({"ReferenceROInum":refroinos},{"ROIName": 0}))
-
+  return list(collection.find({"ReferenceROInum":refroinos},{"ROIName": 1}))[0]['ROIName']
 def query_oar_id(client,name):
   db = client['dicomRt']
   collection=db.roi
   return list(collection.find({"ROIName": name},{"ReferenceROInum":0}))
-
 def query_for_ovh(client,studyID):
   db = client['dicomRt']
   collection=db.ovh
   return list(collection.find({"Study_ID":studyID}))
-
 def query_ovh_exists(client,studyID, ptv_id, oar_id):
   db = client['dicomRt']
   collection=db.ovh
   return list(collection.find({"PTV_ID": ptv_id,"OAR_ID":oar_id,"Study_ID":studyID}))
-
 def query_insert_ovh(client,bin_value, bin_amount, OverlapArea, ptv_id, oar_id, fk_study_id_id):
   db = client['dicomRt']
   table = 'ovh'
   collection=db[table]
   data_temp = {}
-  data = {}
   data_temp['Study_ID']=fk_study_id_id
   data_temp['binValue']=bin_value
   data_temp['binAmount']=bin_amount
   data_temp['OverlapArea']=OverlapArea
   data_temp['PTV_ID']=ptv_id
   data_temp['OAR_ID']=oar_id
-
-  data[table].append(data_temp)
-  collection.insert_many(data[table])
+  collection.insert_one(data_temp)
   
   print('Collection ',table,' Updated')
-
 def query_delete(client,table,study_id,ptv_id,oar_id):
   db = client['dicomRt']  
   collection=db[table]
   q = collection.delete_many({ "Study_ID": study_id, "PTV_ID": ptv_id, "OAR_ID":oar_id })
   print(q.deleted_count, " documents deleted.")
-
 def query_insert_sts(client,elevation, distance, azimuth, amounts ,ptv_id,oar_id,study_id):
   db = client['dicomRt']
   table = 'sts'
   collection=db[table]
   data_temp = {}
-  data = {}
   data_temp['Study_ID']=study_id
   data_temp['Elevation']=elevation
   data_temp['Distance']=distance
@@ -83,34 +71,27 @@ def query_insert_sts(client,elevation, distance, azimuth, amounts ,ptv_id,oar_id
   data_temp['Amounts']=amounts
   data_temp['PTV_ID']=ptv_id
   data_temp['OAR_ID']=oar_id
-
-  data[table].append(data_temp)
-  collection.insert_many(data[table])
+  collection.insert_one(data_temp)
   print('Collection ',table,' Updated')
-
 def query_sts_exists(client,study_id,ptv_id,oar_id):
   db = client['dicomRt']
   table = 'sts'
   collection=db[table]
   return list(collection.find({"PTV_ID": ptv_id,"OAR_ID":oar_id,"Study_ID":study_id})) #need to check
-
-def query_for_contour(client,refROInum, structureSetId):
+def query_for_contour(client,refROInum, SOPInstanceUID):
   db=client['dicomRt']
   collection=db.rtContour
-  return list(collection.find({"$and":[{"ContourImageSequence.ReferencedSOPInstanceUID": structureSetId},{"ReferenceROInum":refROInum}]}))
-
-
+  return list(collection.find({"$and":[{"SOPInstanceUID": SOPInstanceUID},{"ReferenceROInum":refROInum}]}))
 def query_for_sts(client,studyID):
   db=client['dicomRt']
   collection=db.sts
   return collection.find({"Study_ID": studyID})
-
-def query_for_image_plane_info(client,Instance_UID):
+def query_for_image_plane_info(client,SOPInstanceUID):
   db=client['dicomRt']
+  temp=db.rtStructureSet
+  Study_ID=list(temp.find({"SOPInstanceUID": SOPInstanceUID}))[0]['Study_ID']
   collection=db.ctImages
-  return list(collection.find({"SOPInstanceUID": Instance_UID}))
-
-
+  return list(collection.find({"Study_ID": Study_ID}))
 def query_save_similarity(client,DBStudyID, TDSimilarity, OVHDisimilarity, STSDisimilarity, TargetOAR_id, TargetPTV_id,
                 fk_study_id_id_query, fk_study_id_id_historical):
   db = client['dicomRt']
@@ -129,18 +110,14 @@ def query_save_similarity(client,DBStudyID, TDSimilarity, OVHDisimilarity, STSDi
   data[table].append(data_temp)
   collection.insert_many(data[table])
   print('Collection ',table,' Updated')
-
-
 def query_roi_id_from_rtroi(client,dicom_roi_id, study_id ):
     db = client['dicomRt']
     collection = db.roi
     return list(collection.find({"$and":[{"ReferenceROInum": dicom_roi_id},{"Study_ID":study_id}]}))[0]
 
-
-
 class DataFetcher():
 
-    def __init__(self,connect_mongo=True):
+    def __init__(self,connect_mongo=True,local=True):
 
         """
         Initializes datafetcher by building PYMONGO connection, and saving the connection client.
@@ -155,35 +132,29 @@ class DataFetcher():
         password : str
             Password for corresponding user
         """
-        self.userName="bme-528"
-        self.password="project4"
-        self.serverURL="mongodb+srv://"+self.userName+":"+self.password+"@cluster0.x69n5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
-        if connect_mongo:
-            self.client=MongoClient(self.serverURL)
+        if not local:
+            self.userName="bme-528"
+            self.password="project4"
+            self.serverURL="mongodb+srv://"+self.userName+":"+self.password+"@cluster0.x69n5.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+            if connect_mongo:
+                self.client=MongoClient(self.serverURL)
+        else:
+            self.client=MongoClient("localhost", 27017)#,ssl_cert_reqs=ssl.CERT_NONE)
+
 
         print("Finished Setting up database access")
-
 
     #with these two functions, we could use with statement with instance of this class
     #because we use with statement with db connection, we want to inherit this convention
     def __enter__(self):
         return DataFetcher()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        print("exit the context manager")
+    def __exit__(self):
+        print("Closing the Mongo Connection")
         #close the db connection
-        if self.connection:
-            print("close connection")
-            self.connection.close()
+        self.client.close()
 
-        #close the ssh connection
-        if self.server:
-            print("close the server")
-            self.server.stop()
-
-        print("finish the exit process")
-
-    def get_spacing(self, studyID):
+    def get_spacing(self, patient_id):
         """
         Returns the row spacing and column spacing from the DICOM field `PixelSpacing`, and
         returns the slice thickness from the DICOM filed `SliceThickness` from the SQL
@@ -206,6 +177,7 @@ class DataFetcher():
             Slice thickness for `StudyID`
 
         """
+        studyID=get_study_id(self.client,patient_id)
         rois = query_for_roi_list(self.client,studyID)
         row_spacing = -1
         column_spacing = -1
@@ -213,48 +185,49 @@ class DataFetcher():
 
         roi = rois[0]
 
-        Contours = query_for_contour(self.client,roi['id'], roi['fk_structureset_id_id'])
+        Contours = query_for_contour(self.client,roi['ReferenceROInum'], roi['SOPInstanceUID'])
         
         contour = Contours[0]
 
-        image_info = query_for_image_plane_info(contour['ReferencedSOPInstanceUID'])[0]
+        image_info = query_for_image_plane_info(self.client,contour['SOPInstanceUID'])[0]
         
-        spacing_array = np.array(image_info['PixelSpacing'].split(','), dtype=np.float32)
+        spacing_array = np.array(image_info['PixelSpacing'], dtype=np.float32)
 
         row_spacing = spacing_array[0]
         column_spacing = spacing_array[1]
         slice_thickness = float(image_info['SliceThickness'])
-
+        self.pixel_spacing=spacing_array
         return row_spacing, column_spacing, slice_thickness
 
     def get_pixel_spacing(self, studyID):
         return self.pixel_spacing
 
     def __get_contours(self, roi):
-        roi_id = roi['roi_id_id']
+        roi_id = roi['ReferenceROInum']
         
         contour_dict = {}
         imagePatientOrientaion = {}
         imagePatientPosition = {}
         pixelSpacing = {}
         block_shape = []
-        Contours = query_for_contour(self.client,roi['id'], roi['fk_structureset_id_id'])
+        Contours = query_for_contour(self.client,roi['ReferenceROInum'], roi['SOPInstanceUID'])
+        
 
         for contour in Contours:
-            contour_array = np.array(contour['ContourData'].split(','), dtype=np.float32)
+            contour_array = np.array(contour['ContourData'], dtype=np.float32)
             contour_array = contour_array.reshape(contour_array.shape[0] // 3 , 3)
 
-            contour_dict[contour['ReferencedSOPInstanceUID']] = contour_array
-            image_info = query_for_image_plane_info(self.client,contour['ReferencedSOPInstanceUID'])[0]
-            imagePatientOrientaion[contour['ReferencedSOPInstanceUID']] = np.array(image_info['ImageOrientationPatient'].split(','), dtype=np.float32)
+            contour_dict[contour['_id']] = contour_array
+            image_info = query_for_image_plane_info(self.client,contour['SOPInstanceUID'])[0]
+            imagePatientOrientaion[contour['_id']] = np.array(image_info['ImageOrientationPatient'], dtype=np.float32)
             
-            spacing_array = np.array(image_info['PixelSpacing'].split(','), dtype=np.float32)
-            pixelSpacing[contour['ReferencedSOPInstanceUID']] = spacing_array
+            spacing_array = np.array(image_info['PixelSpacing'], dtype=np.float32)
+            pixelSpacing[contour['_id']] = spacing_array
 
             if not block_shape:
                 block_shape = (image_info['Rows'], image_info['Columns'])
 
-            imagePatientPosition[contour['ReferencedSOPInstanceUID']] = np.array(image_info['ImagePositionPatient'].split(','), dtype=np.float32)
+            imagePatientPosition[contour['_id']] = np.array(image_info['ImagePositionPatient'], dtype=np.float32)
 
         self.pixel_spacing = pixelSpacing
         return getContours(block_shape, contour_dict, image_orientation=imagePatientOrientaion,
@@ -266,16 +239,16 @@ class DataFetcher():
         
         contour_dict = {}
         image_position = None
-        print("Starting contour")
+        print("Fetching Contours by matching StudyID")
         for roi in rois:
-            roi_id = roi['roi_id_id']
+            roi_id = roi['ReferenceROInum']
             if roi_id != roi_index:
                 continue
             contours, image_position = self.__get_contours(roi)
             contour_dict[roi_id] = contours
         return contour_dict, image_position
 
-    def get_contours(self,studyID):
+    def get_contours(self,patient_id):
         '''
         Get contour block for all rois under this studyID
         we need fetch following things to construct
@@ -302,18 +275,19 @@ class DataFetcher():
             a list of dictionaries, the first dictionary contains ptv and the second contains OAR
             in the dictionary the key is the name of ROI, the value is the contour block.
         '''
+        studyID=get_study_id(self.client,patient_id)
         rois = query_for_roi_list(self.client,studyID)
         ptv_dict = {}
         oar_dict = {}
 
-        print("Starting contour")
-        for roi in rois:
-            roi_id = roi['roi_id_id']
+        print("Getting Contours for each ROI")
+        for roi in tqdm(rois):
+            roi_id = roi['ReferenceROInum']
             contour_block, roi_block = self.__get_contours(roi)
 
             # Checks for PTVs using ROI name -> if it contains PTV we assume it is a PTV
             roi_name = query_for_roi_name(self.client,roi_id)
-            roi_interpretation = roi["roi_interpretation"]
+            roi_interpretation = roi["RTROIInterpretedType"]
             if "PTV" in roi_interpretation or "CTV" in roi_interpretation:
                 ptv_dict[roi_name] = (contour_block,roi_block)
             elif "none" in roi_interpretation.lower():
@@ -324,7 +298,6 @@ class DataFetcher():
             else:
                 oar_dict[roi_name] = (contour_block,roi_block)
 
-        print("Done with all")
         return ptv_dict,oar_dict
 
     def get_SOPIDs(self, StudyID):
@@ -402,7 +375,7 @@ class DataFetcher():
         oar_id = query_oar_id(self.client,oar_name)
     
         # check if sts already exists, delete if it does
-        rows_count = len(query_sts_exists(study_id, ptv_id, oar_id))
+        rows_count = len(query_sts_exists(self.client,study_id, ptv_id, oar_id))
         if rows_count > 0:
             query_delete(self.client,'sts',study_id, ptv_id, oar_id)
 

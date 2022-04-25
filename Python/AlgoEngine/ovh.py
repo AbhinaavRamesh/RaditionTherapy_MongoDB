@@ -59,6 +59,7 @@ def getHistogram(oar_dists, oar_roi_block, n_bins):
 		voxels with distances from `bin_vals[k]` to `bin_vals[k+ 1].`
 
 	"""
+	# print(np.unique(oar_dists) )
 	min_distance = np.min(oar_dists[oar_roi_block == 1])
 	max_distance = np.max(oar_dists[oar_roi_block == 1])
 	delta = (max_distance - min_distance) / n_bins
@@ -70,10 +71,8 @@ def getHistogram(oar_dists, oar_roi_block, n_bins):
 	bin_vals[-1] = max_distance
 
 	for n in range(0, n_bins):
-	    bin_vals[n + 1] = min_distance + delta*(n + 1)
-	    bin_amts[n] = np.count_nonzero((oar_roi_block == 1) & (oar_dists < bin_vals[n + 1]) & (oar_dists >= bin_vals[n]))
-
-
+		bin_vals[n + 1] = min_distance + delta*(n + 1)
+		bin_amts[n] = np.count_nonzero((oar_roi_block == 1) & (oar_dists < bin_vals[n + 1]) & (oar_dists >= bin_vals[n]))
 	return bin_vals, bin_amts
 
 
@@ -132,26 +131,22 @@ def getOVHDistances(oar_roi_block, ptv_contour_block, ptv_roi_block, row_spacing
 	beta =  slice_spacing / row_spacing
 
 	for oar_voxel in range(0, num_oar_voxels_i):
-	    min_distance = 1000000
-	    for ptv_voxel in range(0, num_ptv_voxels):
-	        distance = sqrt( (oar_i_row[oar_voxel] - ptv_row[ptv_voxel])**2  + 
+		min_distance = 1000000
+		for ptv_voxel in range(0, num_ptv_voxels):
+			distance = sqrt( (oar_i_row[oar_voxel] - ptv_row[ptv_voxel])**2  + 
 	                        alpha*(oar_i_col[oar_voxel] - ptv_col[ptv_voxel])**2 + 
 	                        beta*(oar_i_slice[oar_voxel] - ptv_slice[ptv_voxel])**2)
-	        
-	        min_distance = min(distance, min_distance)
-	    
-	    oar_dists[oar_i_row[oar_voxel], oar_i_col[oar_voxel], oar_i_slice[oar_voxel]]= -1 * min_distance
+			min_distance = min(distance, min_distance)
+		oar_dists[oar_i_row[oar_voxel], oar_i_col[oar_voxel], oar_i_slice[oar_voxel]]= -1 * min_distance
 
 	for oar_voxel in range(0, num_oar_voxels_ni):
-	    min_distance = 1000000
-	    for ptv_voxel in range(0, num_ptv_voxels):
-	        distance = sqrt( (oar_ni_row[oar_voxel] - ptv_row[ptv_voxel])**2  + 
+		min_distance = 1000000
+		for ptv_voxel in range(0, num_ptv_voxels):
+			distance = sqrt( (oar_ni_row[oar_voxel] - ptv_row[ptv_voxel])**2  + 
 	                        alpha*(oar_ni_col[oar_voxel] - ptv_col[ptv_voxel])**2 + 
 	                        beta*(oar_ni_slice[oar_voxel] - ptv_slice[ptv_voxel])**2)
-	        
-	        min_distance = min(distance, min_distance)
-	    
-	    oar_dists[oar_ni_row[oar_voxel], oar_ni_col[oar_voxel], oar_ni_slice[oar_voxel]] = min_distance
+			min_distance = min(distance, min_distance)
+		oar_dists[oar_ni_row[oar_voxel], oar_ni_col[oar_voxel], oar_ni_slice[oar_voxel]] = min_distance
 
 	return oar_dists
 

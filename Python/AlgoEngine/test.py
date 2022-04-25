@@ -1,6 +1,4 @@
-import MySQLdb
 import settings
-from sshtunnel import SSHTunnelForwarder
 from types import *
 from utils import *
 from DataFetcher import DataFetcher
@@ -19,13 +17,13 @@ Then (in the future) you can use this script
 for similarity testing as well
 """
 
-am = AlgoManager('3', False)
+am = AlgoManager('3685295524', False)
 
 # tests saving of STS and OVH
-#am.feature_extraction()
+am.feature_extraction()
 
-# TODO: tests saving of similarity
-am.similarity_calculation()
+#TODO: tests saving of similarity
+#am.similarity_calculation()
 
 
 ########################################################################################################################
