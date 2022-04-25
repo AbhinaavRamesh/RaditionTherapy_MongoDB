@@ -117,7 +117,7 @@ def query_roi_id_from_rtroi(client,dicom_roi_id, study_id ):
 
 class DataFetcher():
 
-    def __init__(self,connect_mongo=True,local=True):
+    def __init__(self,connect_mongo=True,local=False):
 
         """
         Initializes datafetcher by building PYMONGO connection, and saving the connection client.
@@ -351,10 +351,11 @@ class DataFetcher():
 
         # check if ovh already exists, delete if it does
         rows_count = len(query_ovh_exists(self.client,studyID, ptv_id, oar_id))
-        if rows_count > 0:
+        #if rows_count > 0:
             # query_delete = "DELETE from ovh where fk_study_id_id = %s and ptv_id = %s and oar_id = %s"
-            query_delete(self.client,'ovh',studyID, ptv_id, oar_id)
-
+            #query_delete(self.client,'ovh',studyID, ptv_id, oar_id)
+            
+        
         binValue = ','.join(str(point) for point in ovh_hist[0])
         binAmount = ','.join(str(point) for point in ovh_hist[1])
 
@@ -376,8 +377,8 @@ class DataFetcher():
     
         # check if sts already exists, delete if it does
         rows_count = len(query_sts_exists(self.client,study_id, ptv_id, oar_id))
-        if rows_count > 0:
-            query_delete(self.client,'sts',study_id, ptv_id, oar_id)
+        #if rows_count > 0:
+            #query_delete(self.client,'sts',study_id, ptv_id, oar_id)
 
         elevation = ",".join(str(point) for point in sts_hist[0])
         azimuth = ",".join(str(point) for point in sts_hist[1])

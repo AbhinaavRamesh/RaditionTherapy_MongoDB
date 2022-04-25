@@ -38,7 +38,6 @@ def parse_dicom(data_path):
         if i[:2]=="RS":
             RT_dcm_path+=i
             break
-    print(RT_dcm_path)
     patient_id=None
     study_id=None
     series_id=None

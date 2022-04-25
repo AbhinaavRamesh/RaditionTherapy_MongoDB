@@ -17,7 +17,7 @@ Then (in the future) you can use this script
 for similarity testing as well
 """
 
-am = AlgoManager('3685295524', False)
+am = AlgoManager('2212228524',local=False)
 
 # tests saving of STS and OVH
 am.feature_extraction()

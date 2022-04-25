@@ -20,9 +20,9 @@ class AlgoManager():
     attribute
     self.StudyIDs
     '''
-    def __init__(self, patient_id, connect_mongo=True,local=True):
+    def __init__(self, patient_id, connect_mongo=True,local=False):
         #create a datafetcher instance to fetch the data from the database
-        self.data_fetcher = DataFetcher()
+        self.data_fetcher = DataFetcher(connect_mongo=connect_mongo,local=local)
 
         self.n_bins = 10
 
