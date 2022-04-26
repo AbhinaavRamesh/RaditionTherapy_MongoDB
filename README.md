@@ -4,6 +4,10 @@
 Project Sponsor: Dept of Radiation Medicine, Roswell Park Cancer Center </h3>
 <h4> Abhinaav Ramesh, Piwat Wiphanurat, Garima Danidhariya, Mridul Jhawar, Siddarth Ganesh</h4>
 <br>
+<h3>Slides:</h3>
+[BME528_FinalPpt_Group4.pptx](https://github.com/AbhinaavRamesh/RaditionTherapy_MongoDB/files/8565437/BME528_FinalPpt_Group4.pptx)
+
+<br>
 <h2> Instructions to Run</h1>
 <ol><li> Install the dependacies by cloning the anaconda environment from conda_list.txt</li>
 <li>
