@@ -14,11 +14,14 @@ Project Sponsor: Dept of Radiation Medicine, Roswell Park Cancer Center </h3>
 Run InsertSampleData.py to push sample tables into MongoDB. Things to modify in file:
 <ul>
     <li>Path to Stored Data</li>
-    <li> MongoDB configuration (New Server URL or change client to connect to local)</li>
+    <li>MongoDB configuration (New Server URL or change client to connect to local)</li>
 </ul>
 </li>
 <li>Run main.py to execute a sample test for Buffalo Cases 3, to check for the feature extraction parsing from / to the DB</li>
 <li> Use GUI managers like Studio 3t to visualize local mogodb client or connect to mongodb atlas cloud</li>
 </ol>
-
-
+<br>
+Main Library
+<ul>
+<li>Pymongo : For connect to the MongoDB server. To retrive and store intermidate data, as well as features after featrue extraction process. - v4.1.1 </li>
+</ul>
