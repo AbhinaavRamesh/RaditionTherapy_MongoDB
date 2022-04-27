@@ -35,6 +35,7 @@ html-like file.
 data for the program
 * [sshtunnel](https://sshtunnel.readthedocs.io/en/latest/) - For connecting to the remote server where the MySQL
 database is stored
+* [pymongo] (https://pymongo.readthedocs.io/en/stable/) - For connecting to the MongoDB server that stores intermediate data for the program, as well as store calcualted features after features extraction process. - v4.1.1
 
 #### The Version of Python To Use
 
