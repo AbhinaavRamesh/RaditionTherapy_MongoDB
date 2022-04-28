@@ -7,6 +7,15 @@ Project Sponsor: Dept of Radiation Medicine, Roswell Park Cancer Center </h3>
 <h3>Slides:</h3>
 [BME528_FinalPpt_Group4.pptx](https://github.com/AbhinaavRamesh/RaditionTherapy_MongoDB/files/8565437/BME528_FinalPpt_Group4.pptx)
 
+<h3>MongoDB Server</h3>
+https://cloud.mongodb.com/v2/61a54c63156b5f0775c57bcc#metrics/replicaSet/622d0f155a44836697a573aa/explorer/dicomRt
+
+Currently we implement local MongoDB since it was costly to retrive and put all the data to server.
+All of the database setting is in settings.py
+
+Also, we use studio3t GUI software to vistualize and manage data in MongoDB
+Link: https://studio3t.com
+
 <br>
 <h2> Instructions to Run</h1>
 <ol><li> Install the dependacies by cloning the anaconda environment from conda_list.txt</li>
